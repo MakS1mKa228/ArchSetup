@@ -48,7 +48,7 @@ echo "1 - Yes"
 echo "2 - No"
 read swap
 if [[ "$swap" == "1" ]]; then
-  echo "Выберите(например: /dev/sda1): "
+  echo "Select(for example: /dev/sda1): "
   read swap_directory
   mkswap $swap_directory
   swapon $swap_directory
