@@ -63,13 +63,13 @@ if [[ "$root" == "1" ]]; then
   ls /mnt| grep -v /mnt/home | xargs rm -rfv
 fi
 if [[ "$kernel" == "1" ]]; then
-  pacstrap  /mnt base linux linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux linux-firmware networkmanager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "2" ]]; then
-  pacstrap  /mnt base linux-lts linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-lts linux-firmware networkmanager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "3" ]]; then
-  pacstrap  /mnt base linux-zen linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-zen linux-firmware networkmanager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "4" ]]; then
-  pacstrap  /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-hardened linux-firmware networkmanager wget git nano vim efibootmgr sudo sed
 fi
 if [[ "$root" == "1" ]]; then
   echo '
