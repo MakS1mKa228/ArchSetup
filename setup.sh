@@ -228,3 +228,5 @@ fi
 mv setup_post.sh /mnt/setup.sh
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt
+chmod +x /mnt/setup.sh
+./mnt/setup.sh
