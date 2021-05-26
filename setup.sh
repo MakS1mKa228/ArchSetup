@@ -36,6 +36,7 @@ if [[ "$root" == "2" ]]; then
     read format_home
     if [[ "$format_root" == "1" ]]; then
       mkfs.ext4 $home_directory
+    fi
     mkdir /mnt/home
     mount $home_directory /mnt/home
   fi
@@ -62,13 +63,13 @@ if [[ "$root" == "1" ]]; then
   ls /mnt| grep -v /mnt/home | xargs rm -rfv
 fi
 if [[ "$kernel" == "1" ]]; then
-  pacstrap -i /mnt base linux linux-firmware NetworkManager wget git nano vim efibootmgr sudo
+  pacstrap -i /mnt base linux linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "2" ]]; then
-  pacstrap -i /mnt base linux-lts linux-firmware NetworkManager wget git nano vim efibootmgr sudo
+  pacstrap -i /mnt base linux-lts linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "3" ]]; then
-  pacstrap -i /mnt base linux-zen linux-firmware NetworkManager wget git nano vim efibootmgr sudo
+  pacstrap -i /mnt base linux-zen linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "4" ]]; then
-  pacstrap -i /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo
+  pacstrap -i /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 fi
 pacman -S sed
 sed '/%wheel ALL=(ALL) ALL/s/^#//g' -i  /mnt/etc/sudoers
