@@ -1,42 +1,42 @@
 #!/bin/bash
 
-echo "1 - Если у вас есть уже установленная система, то вы можете произвести установки, сохранив все данные из домашней папки пользователя. Выбрать раздел?"
-echo "2 - Разметить диск"
+echo "1 - If you have an already installed system, then you can make settings, saving all data from the user's home folder. Select a section?"
+echo "2 - Partition disk"
 read root
 
 if [[ "$root" == "2" ]]; then
   fdisk -l
-  echo "Выберите диск(например: /dev/sda): "
+  echo "Select the drive (for example: /dev/sda): "
   read hard
   cfdisk $hard
 fi
 
 fdisk -l
-echo "Выберите(например: /dev/sda1): "
+echo "Select (for example: /dev/sda1): "
 read root_directory
 echo "mount $root_directory /mnt"
 if [[ "$root" == "2" ]]; then
-  echo "Монтировать раздел для домашней папки?"
-  echo "1 - Да"
-  echo "2 - Нет"
+  echo "Mount partition for home folder?"
+  echo "1 - Yes"
+  echo "2 - No"
   read home
   if [[ "$home" == "1" ]]; then
-    echo "Выберите(например: /dev/sda1): "
+    echo "Select (for example: /dev/sda1): "
     read home_directory
-    echo "mkdir /mnt/home"
-    echo "mount $home_directory /mnt/home"
+    mkdir /mnt/home
+    mount $home_directory /mnt/home
   fi
 fi
-echo "Использовать раздел подкачки?"
-echo "1 - Да"
-echo "2 - Нет"
+echo "Use a swap partition?"
+echo "1 - Yes"
+echo "2 - No"
 read swap
 if [[ "$swap" == "1" ]]; then
   echo "Выберите(например: /dev/sda1): "
   read swap_directory
-  echo "swapon $swap_directory"
+  swapon $swap_directory
 fi
-echo "Выберите ядро системы:"
+echo "Select the system kernel: "
 echo "1 - linux"
 echo "2 - linux_lts"
 echo "3 - linux_zen"
@@ -54,49 +54,69 @@ elif [[ "$kernel" == "3" ]]; then
 elif [[ "$kernel" == "4" ]]; then
   pacstrap -i /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo
 fi
+pacman -S sed
 sed '/%wheel ALL=(ALL) ALL/s/^#//g' -i  /mnt/etc/sudoers
 if [[ "$root" == "1" ]]; then
   echo '
-  echo "Введите свой регион(например: Europe): "
+  echo "Enter your region (for example: Europe): "
   read reg
-  echo "Введите свой город(например: Moscow): "
+  echo "Enter your city (for example: Moscow): "
   read city
   ln -sf /usr/share/zoneinfo/$reg/$city /etc/localtime
   hwclock --systohc --utc
-  echo "Введите имя пользователя: "
+  echo "Enter the computer name: "
   read pc_name
   echo "$pc_name" > /etc/hostname
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
   systemctl enable networkmanager
-  echo "Какая локаль вам нужна(например: ru_RU.UTF_8 UTF-8): "
+  echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
   sed "/$locale/s/^#//g" -i  /mnt/etc/locale.gen
   sed "/en_US.UTF-8 UTF_8/s/^#//g" -i  /mnt/etc/locale.gen
   locale-gen
   echo "LANG=en_US.UTF-8" > /etc/locale.conf
   usermod -aG wheel -s /bin/bash $user
-  echo "Выберите оболочку системы:"
+  username - $user
+  echo "Select the system shell: "
   echo "1 - KDE"
   echo "2 - GNOME"
   echo "3 - XFCE"
-  echo "4 - "
+  echo "4 - Cinnamon"
+  echo "5 - Mate"
+  echo "6 - Deepin"
   read de
-  if [[ "$de" == "1" ]]; then
-    pacman -Sy  xorg sddm plasma-meta dolphin konsole
-    systemctl enable sddm
-  elif [[ "$de" == "2" ]]; then
-    pacman -Sy xorg
-  elif [[ "$de" == "3" ]]; then
-    pacman -Sy xorg xfce4 xfce4-goodies
-    
+  pacman -Sy sddm xorg xorg-xinit
+  echo "Select video driver: "
+  echo "1 - Nvdia"
+  echo "2 - AMD"
+  read driver
+  if [[ "$driver" == "1" ]]; then
+    pacman -Sy nvidia-settings nvidia
+  elif [[ "$driver" == "2" ]]; then
+      pacman -Sy mesa
   fi
+  systemctl enable sddm
+  if [[ "$de" == "1" ]]; then
+    pacman -Sy plasma dolphin konsole
+  elif [[ "$de" == "2" ]]; then
+    pacman -Sy gnome gnome-extra
+  elif [[ "$de" == "3" ]]; then
+    pacman -Sy xfce4 xfce4-goodies
+  elif [[ "$de" == "4" ]]; then
+    pacman -Sy cinnamon nemo-fileroller
+  elif [[ "$de" == "5" ]]; then
+    pacman -Sy mate mate-extra
+  elif [[ "$de" == "6" ]]; then
+    pacman -Sy deepin deepin-extra
+  fi
+  username - root
   mkdir /boot/efi
-  echo "Выберите EFI раздел(например: /dev/sda1):"
+  echo "Select an EFI partition (for example: /dev/sda1): "
   read efi
   mount $efi /boot/efi
   pacman -S grub
   grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable
   grub-mkconfig -o /boot/grub/grub.cfg
-  echo "Введите root пароль: "
+  echo "Enter root password: "
   passwd
   exit
   umount -R /mnt
@@ -105,48 +125,68 @@ if [[ "$root" == "1" ]]; then
   ' > setup_post.sh
 elif [[ "$root" == "2" ]]; then
   echo '
-  echo "Введите свой регион(например: Europe): "
+  echo "Enter your region (for example: Europe): "
   read reg
-  echo "Введите свой город(например: Moscow): "
+  echo "Enter your city (for example: Moscow): "
   read city
   ln -sf /usr/share/zoneinfo/$reg/$city /etc/localtime
   hwclock --systohc --utc
-  echo "Введите имя пользователя: "
+  echo "Enter the computer name: "
   read pc_name
   echo "$pc_name" > /etc/hostname
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
   systemctl enable networkmanager
-  echo "Какая локаль вам нужна(например: ru_RU.UTF_8): "
+  echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
   nano /etc/locale.gen
   locale-gen
   echo "LANG=en_US.UTF-8" > /etc/locale.conf
-  echo "Введите имя пользователя: "
+  echo "Enter your username: "
   read user
   useradd -m -g users -G wheel -s /bin/bash $user
-  echo "Введите пароль: "
+  echo "Enter password: "
   passwd $user
-  echo "Выберите оболочку системы:"
+  username - $user
+  echo "Select the system shell: "
   echo "1 - KDE"
   echo "2 - GNOME"
   echo "3 - XFCE"
-  echo "4 - "
+  echo "4 - Cinnamon"
+  echo "5 - Mate"
+  echo "6 - Deepin"
   read de
-  if [[ "$de" == "1" ]]; then
-    pacman -Sy  xorg sddm plasma-meta dolphin konsole
-    systemctl enable sddm
-  elif [[ "$de" == "2" ]]; then
-    pacman -Sy xorg
-  elif [[ "$de" == "3" ]]; then
-    pacman -Sy xorg xfce4 xfce4-goodies    
+  pacman -Sy sddm xorg xorg-xinit
+  echo "Select video driver: "
+  echo "1 - Nvdia"
+  echo "2 - AMD"
+  read driver
+  if [[ "$driver" == "1" ]]; then
+    pacman -Sy nvidia-settings nvidia
+  elif [[ "$driver" == "2" ]]; then
+      pacman -Sy mesa
   fi
+  systemctl enable sddm
+  if [[ "$de" == "1" ]]; then
+    pacman -Sy plasma dolphin konsole
+  elif [[ "$de" == "2" ]]; then
+    pacman -Sy gnome gnome-extra
+  elif [[ "$de" == "3" ]]; then
+    pacman -Sy xfce4 xfce4-goodies
+  elif [[ "$de" == "4" ]]; then
+    pacman -Sy cinnamon nemo-fileroller
+  elif [[ "$de" == "5" ]]; then
+    pacman -Sy mate mate-extra
+  elif [[ "$de" == "6" ]]; then
+    pacman -Sy deepin deepin-extra
+  fi
+  username - root
   mkdir /boot/efi
-  echo "Выберите EFI раздел(например: /dev/sda1):"
+  echo "Select an EFI partition (for example: /dev/sda1): "
   read efi
   mount $efi /boot/efi
   pacman -S grub
   grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable
   grub-mkconfig -o /boot/grub/grub.cfg
-  echo "Введите root пароль: "
+  echo "Enter root password: "
   passwd
   exit
   umount -R /mnt
