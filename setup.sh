@@ -53,6 +53,18 @@ if [[ "$swap" == "1" ]]; then
   mkswap $swap_directory
   swapon $swap_directory
 fi
+mkdir /mnt/boot/efi
+echo "Select an EFI partition (for example: /dev/sda1): "
+read efi
+echo "Format section?"
+echo "1 - Yes"
+echo "2 - No"
+read format_efi
+if [[ "$format_efi" == "1" ]]; then
+  mkfs.fat -F32 $efi
+fi
+mount $efi /boot/efi
+
 echo "Select the system kernel: "
 echo "1 - linux"
 echo "2 - linux_lts"
@@ -101,39 +113,46 @@ if [[ "$root" == "1" ]]; then
   echo "5 - Mate"
   echo "6 - Deepin"
   read de
-  pacman -Sy sddm xorg xorg-xinit
   echo "Select video driver: "
   echo "1 - Nvdia"
   echo "2 - AMD"
   read driver
   if [[ "$driver" == "1" ]]; then
-    pacman -Sy nvidia-settings nvidia
+    if [[ "$de" == "1" ]]; then
+      pacman -Sy plasma dolphin konsole nvidia-settings nvidia sddm xorg xorg-xinit
+    elif [[ "$de" == "2" ]]; then
+      pacman -Sy gnome gnome-extra nvidia-settings nvidia sddm xorg xorg-xinit
+    elif [[ "$de" == "3" ]]; then
+      pacman -Sy xfce4 xfce4-goodies nvidia-settings nvidia sddm xorg xorg-xinit
+    elif [[ "$de" == "4" ]]; then
+      pacman -Sy cinnamon nemo-fileroller nvidia-settings nvidia sddm xorg xorg-xinit
+    elif [[ "$de" == "5" ]]; then
+      pacman -Sy mate mate-extra nvidia-settings nvidia sddm xorg xorg-xinit
+    elif [[ "$de" == "6" ]]; then
+      pacman -Sy deepin deepin-extra nvidia-settings nvidia sddm xorg xorg-xinit
+    fi
+    systemctl enable sddm
   elif [[ "$driver" == "2" ]]; then
-      pacman -Sy mesa
-  fi
-  systemctl enable sddm
-  if [[ "$de" == "1" ]]; then
-    pacman -Sy plasma dolphin konsole
-  elif [[ "$de" == "2" ]]; then
-    pacman -Sy gnome gnome-extra
-  elif [[ "$de" == "3" ]]; then
-    pacman -Sy xfce4 xfce4-goodies
-  elif [[ "$de" == "4" ]]; then
-    pacman -Sy cinnamon nemo-fileroller
-  elif [[ "$de" == "5" ]]; then
-    pacman -Sy mate mate-extra
-  elif [[ "$de" == "6" ]]; then
-    pacman -Sy deepin deepin-extra
+    if [[ "$de" == "1" ]]; then
+      pacman -Sy plasma dolphin konsole mesa sddm xorg xorg-xinit
+    elif [[ "$de" == "2" ]]; then
+      pacman -Sy gnome gnome-extra mesa sddm xorg xorg-xinit
+    elif [[ "$de" == "3" ]]; then
+      pacman -Sy xfce4 xfce4-goodies mesa sddm xorg xorg-xinit
+    elif [[ "$de" == "4" ]]; then
+      pacman -Sy cinnamon nemo-fileroller mesa sddm xorg xorg-xinit
+    elif [[ "$de" == "5" ]]; then
+      pacman -Sy mate mate-extra mesa sddm xorg xorg-xinit
+    elif [[ "$de" == "6" ]]; then
+      pacman -Sy deepin deepin-extra mesa sddm xorg xorg-xinit
+    fi
+    systemctl enable sddm
   fi
   username - root
-  mkdir /boot/efi
-  echo "Select an EFI partition (for example: /dev/sda1): "
-  read efi
-  mount $efi /boot/efi
   pacman -S grub
   grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable
   grub-mkconfig -o /boot/grub/grub.cfg
-  echo "Enter root password: "
+  echo "Root password"
   passwd
   exit
   umount -R /mnt
@@ -163,7 +182,6 @@ elif [[ "$root" == "2" ]]; then
   echo "Enter your username: "
   read user
   useradd -m -g users -G wheel -s /bin/bash $user
-  echo "Enter password: "
   passwd $user
   username - $user
   echo "Select the system shell: "
@@ -174,15 +192,14 @@ elif [[ "$root" == "2" ]]; then
   echo "5 - Mate"
   echo "6 - Deepin"
   read de
-  pacman -Sy sddm xorg xorg-xinit
   echo "Select video driver: "
   echo "1 - Nvdia"
   echo "2 - AMD"
   read driver
   if [[ "$driver" == "1" ]]; then
-    pacman -Sy nvidia-settings nvidia
+    pacman -Sy nvidia-settings nvidia sddm xorg xorg-xinit
   elif [[ "$driver" == "2" ]]; then
-      pacman -Sy mesa
+      pacman -Sy mesa sddm xorg xorg-xinit
   fi
   systemctl enable sddm
   if [[ "$de" == "1" ]]; then
@@ -199,14 +216,9 @@ elif [[ "$root" == "2" ]]; then
     pacman -Sy deepin deepin-extra
   fi
   username - root
-  mkdir /boot/efi
-  echo "Select an EFI partition (for example: /dev/sda1): "
-  read efi
-  mount $efi /boot/efi
   pacman -S grub
   grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable
   grub-mkconfig -o /boot/grub/grub.cfg
-  echo "Enter root password: "
   passwd
   exit
   umount -R /mnt
