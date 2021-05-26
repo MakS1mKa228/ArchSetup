@@ -14,8 +14,15 @@ fi
 fdisk -l
 echo "Select (for example: /dev/sda1): "
 read root_directory
-echo "mount $root_directory /mnt"
 if [[ "$root" == "2" ]]; then
+  echo "Format section?"
+  echo "1 - Yes"
+  echo "2 - No"
+  read format_root
+  if [[ "$format_root" == "1" ]]; then
+    mkfs.ext4 $root_directory
+  fi
+  mount $root_directory /mnt
   echo "Mount partition for home folder?"
   echo "1 - Yes"
   echo "2 - No"
@@ -23,9 +30,17 @@ if [[ "$root" == "2" ]]; then
   if [[ "$home" == "1" ]]; then
     echo "Select (for example: /dev/sda1): "
     read home_directory
+    echo "Format section?"
+    echo "1 - Yes"
+    echo "2 - No"
+    read format_home
+    if [[ "$format_root" == "1" ]]; then
+      mkfs.ext4 $home_directory
     mkdir /mnt/home
     mount $home_directory /mnt/home
   fi
+elif [[ "$root" == "1" ]]; then
+  mount $root_directory /mnt
 fi
 echo "Use a swap partition?"
 echo "1 - Yes"
@@ -34,6 +49,7 @@ read swap
 if [[ "$swap" == "1" ]]; then
   echo "Выберите(например: /dev/sda1): "
   read swap_directory
+  mkswap $swap_directory
   swapon $swap_directory
 fi
 echo "Select the system kernel: "
