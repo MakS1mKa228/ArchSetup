@@ -63,16 +63,14 @@ if [[ "$root" == "1" ]]; then
   ls /mnt| grep -v /mnt/home | xargs rm -rfv
 fi
 if [[ "$kernel" == "1" ]]; then
-  pacstrap -i /mnt base linux linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "2" ]]; then
-  pacstrap -i /mnt base linux-lts linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-lts linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "3" ]]; then
-  pacstrap -i /mnt base linux-zen linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-zen linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 elif [[ "$kernel" == "4" ]]; then
-  pacstrap -i /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
+  pacstrap  /mnt base linux-hardened linux-firmware NetworkManager wget git nano vim efibootmgr sudo sed
 fi
-pacman -S sed
-sed '/%wheel ALL=(ALL) ALL/s/^#//g' -i  /mnt/etc/sudoers
 if [[ "$root" == "1" ]]; then
   echo '
   echo "Enter your region (for example: Europe): "
@@ -87,11 +85,13 @@ if [[ "$root" == "1" ]]; then
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
   systemctl enable networkmanager
   echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
-  sed "/$locale/s/^#//g" -i  /mnt/etc/locale.gen
-  sed "/en_US.UTF-8 UTF_8/s/^#//g" -i  /mnt/etc/locale.gen
+  read locale
+  sed "/$locale/s/^#//g" -i  /etc/locale.gen
+  sed "/en_US.UTF-8 UTF_8/s/^#//g" -i  /etc/locale.gen
   locale-gen
   echo "LANG=en_US.UTF-8" > /etc/locale.conf
   usermod -aG wheel -s /bin/bash $user
+  sed "/%wheel ALL=(ALL) ALL/s/^#//g" -i  /etc/sudoers
   username - $user
   echo "Select the system shell: "
   echo "1 - KDE"
@@ -154,7 +154,10 @@ elif [[ "$root" == "2" ]]; then
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
   systemctl enable networkmanager
   echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
-  nano /etc/locale.gen
+  read locale
+  sed "/$locale/s/^#//g" -i  /etc/locale.gen
+  sed "/en_US.UTF-8 UTF_8/s/^#//g" -i  /etc/locale.gen
+  sed "/%wheel ALL=(ALL) ALL/s/^#//g" -i  /etc/sudoers
   locale-gen
   echo "LANG=en_US.UTF-8" > /etc/locale.conf
   echo "Enter your username: "
