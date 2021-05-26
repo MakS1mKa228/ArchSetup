@@ -53,6 +53,7 @@ if [[ "$swap" == "1" ]]; then
   mkswap $swap_directory
   swapon $swap_directory
 fi
+mkdir /mnt/boot
 mkdir /mnt/boot/efi
 echo "Select an EFI partition (for example: /dev/sda1): "
 read efi
@@ -63,7 +64,7 @@ read format_efi
 if [[ "$format_efi" == "1" ]]; then
   mkfs.fat -F32 $efi
 fi
-mount $efi /boot/efi
+mount $efi /mnt/boot/efi
 
 echo "Select the system kernel: "
 echo "1 - linux"
@@ -95,10 +96,11 @@ if [[ "$root" == "1" ]]; then
   read pc_name
   echo "$pc_name" > /etc/hostname
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
-  systemctl enable networkmanager
+  systemctl enable NetworkManager
   echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
   read locale
   sed "/$locale/s/^#//g" -i  /etc/locale.gen
+
   sed "/en_US.UTF-8 UTF_8/s/^#//g" -i  /etc/locale.gen
   locale-gen
   echo "LANG=en_US.UTF-8" > /etc/locale.conf
@@ -154,9 +156,6 @@ if [[ "$root" == "1" ]]; then
   grub-mkconfig -o /boot/grub/grub.cfg
   echo "Root password"
   passwd
-  exit
-  umount -R /mnt
-  reboot
 
   ' > setup_post.sh
 elif [[ "$root" == "2" ]]; then
@@ -171,7 +170,7 @@ elif [[ "$root" == "2" ]]; then
   read pc_name
   echo "$pc_name" > /etc/hostname
   echo "127.0.1.1 localhost.localdomain $pc_name" > /etc/hosts
-  systemctl enable networkmanager
+  systemctl enable NetworkManager
   echo "What locale do you need (for example: ru_RU.UTF_8 UTF-8): "
   read locale
   sed "/$locale/s/^#//g" -i  /etc/locale.gen
@@ -219,14 +218,11 @@ elif [[ "$root" == "2" ]]; then
   pacman -S grub
   grub-install --target=x86_64-efi --bootloader-id=GRUB --efi-directory=/boot/efi --removable
   grub-mkconfig -o /boot/grub/grub.cfg
+  echo "Root password"
   passwd
-  exit
-  umount -R /mnt
-  reboot
   ' > setup_post.sh
 fi
 mv setup_post.sh /mnt/setup.sh
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt
 chmod +x /mnt/setup.sh
-./mnt/setup.sh
+arch-chroot /mnt
